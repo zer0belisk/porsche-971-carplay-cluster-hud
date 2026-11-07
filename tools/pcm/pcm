@@ -1,0 +1,10 @@
+#!/bin/bash
+# Run one shell command on the PCM:  tools/pcm/pcm 'ls -l /tmp'
+# Password is read from ~/.pcmpw (mode 600), never stored in the repo.
+SP="$(cd "$(dirname "$0")" && pwd)"
+PW="${PCM_PWFILE:-$HOME/.pcmpw}"
+expect "$SP/pcm.exp" "$PW" "$1" 2>&1 \
+  | sed '1d' | sed 's/\r$//' \
+  | grep -v '^root@mmx.*echo __PCM_DONE__$' \
+  | grep -v '^__PCM_DONE__$' \
+  | grep -v '^root@mmx[^>]*> *$'

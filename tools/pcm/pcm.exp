@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+# pcm.exp <pwfile> <command-string>
+set timeout 90
+set pwfile [lindex $argv 0]
+set cmd    [lindex $argv 1]
+set fh [open $pwfile r]
+set pw [read -nonewline $fh]
+close $fh
+log_user 0
+spawn ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa \
+    -o PubkeyAcceptedAlgorithms=+ssh-rsa -o ConnectTimeout=20 \
+    root@PCM_IP
+expect {
+    -re {[Pp]assword:} { send "$pw\r" }
+    timeout { puts "EXPECT_TIMEOUT_AT_PASSWORD"; exit 2 }
+    eof     { puts "EXPECT_EOF_AT_PASSWORD"; exit 2 }
+}
+# wait for a shell prompt
+expect {
+    -re {[#\$] $}  {}
+    -re {root@mmx} {}
+    timeout { puts "EXPECT_TIMEOUT_AT_PROMPT"; exit 3 }
+}
+log_user 1
+send "stty -echo 2>/dev/null; $cmd\r"
+send "echo __PCM_DONE__\r"
+expect {
+    "__PCM_DONE__\r" { }
+    timeout { puts "\nEXPECT_TIMEOUT_RUNNING"; }
+}
+expect {
+    -re {__PCM_DONE__} {}
+    timeout {}
+}
+log_user 0
+send "exit\r"
+expect eof

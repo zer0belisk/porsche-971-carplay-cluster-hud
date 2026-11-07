@@ -1,0 +1,16 @@
+# build outputs
+hook/*.so
+hud/build/
+*.class
+# local secrets / machine state
+*.pcmpw
+.pcmpw
+# OS cruft
+.DS_Store
+._*
+# never commit firmware, logs, backups
+*.img
+*.jxe
+*.log
+*.core
+*.core.gz
